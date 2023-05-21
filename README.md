@@ -14,3 +14,14 @@ Of course, the front-end interface and the database are also indispensable. Here
 ![Overall architecture](./overall_architecture.png)
 
 Without a doubt, this is just a simple local file management system. To make this assistant more useful and reliable, it would require the addition of more new features and more time for optimization. However, through this project, I want more people to know to maintain curiosity about new fields and new knowledge, to continue learning, and to use AI tools to make themselves more efficient and excellent.
+
+
+## Environment Setup
+```
+conda create -n AiFileAssistant python=3.10.9
+conda activate AiFileAssistant
+
+# Install Python dependencies
+cd [parent_directory_of_project]/AI-File-Assistant
+pip install -r requirements.txt
+```

@@ -40,6 +40,14 @@ class ObservingDirectoryClient:
         except NoResultFound:
             return None
 
+    def get_all_active(self) -> Sequence[ObservingDirectoryModel]:
+        """Get all active observing directories."""
+        observing_directories = self.session.query(ObservingDirectory).filter(ObservingDirectory.active == True).all()
+        return [
+            ObservingDirectoryModel(path=observing_directory.path, active=observing_directory.active)
+            for observing_directory in observing_directories
+        ]
+
     def get_all(self) -> Sequence[ObservingDirectoryModel]:
         """Get all observing directories."""
         observing_directories = self.session.query(ObservingDirectory).all()

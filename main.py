@@ -4,11 +4,13 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+from src.database.client.observing_directory_client import ObservingDirectoryClient
 from src.observer.directory_observer import DirectoryObserver
 from typing import Optional
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+db_uri = "sqlite:////Users/samchen/Documents/GitHub/AI-File-Assistant/database/sqlite/database.db"
 
 registered_directories = set()
 
@@ -23,6 +25,7 @@ async def read_item(request: Request):
 async def register_directory(directory: Directory):
     if dir not in registered_directories:
         registered_directories.add(directory.dir)
+        app.state.observing_directory_client.upsert_observing_directory(directory.dir, True)
         app.state.directory_observer.register_path(directory.dir)
     return {"message": "Directory registered", "registered_directories": registered_directories}
 
@@ -30,6 +33,7 @@ async def register_directory(directory: Directory):
 async def unregister_directory(directory: Directory):
     if directory.dir in registered_directories:
         registered_directories.remove(directory.dir)
+        app.state.observing_directory_client.upsert_observing_directory(directory.dir, False)
         app.state.directory_observer.unregister_path(directory.dir)
     return {"message": "Directory unregistered", "registered_directories": registered_directories}
 
@@ -37,6 +41,9 @@ async def unregister_directory(directory: Directory):
 async def startup_event():
     # Initialize and start the DirectoryObserver.
     app.state.directory_observer = DirectoryObserver()
+    app.state.observing_directory_client = ObservingDirectoryClient(db_uri)
+    for active_directory in app.state.observing_directory_client.get_all_active():
+        registered_directories.add(active_directory.path)
 
 @app.on_event("shutdown")
 def shutdown_event():

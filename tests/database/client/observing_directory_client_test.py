@@ -44,6 +44,22 @@ class TestObservingDirectoryClient:
         assert result[1].path == path2
         assert result[1].active == active2
 
+    def test_get_all_active(self, observing_directory_client):
+        path1 = "/path/to/directory1"
+        active1 = True
+        path2 = "/path/to/directory2"
+        active2 = False
+
+        # Insert observing directories
+        observing_directory_client.upsert_observing_directory(path1, active1)
+        observing_directory_client.upsert_observing_directory(path2, active2)
+
+        # Get all observing directories
+        result = observing_directory_client.get_all_active()
+        assert len(result) == 1
+        assert result[0].path == path1
+        assert result[0].active == active1
+
     def test_delete_all(self, observing_directory_client):
         path = "/path/to/directory"
         active = True

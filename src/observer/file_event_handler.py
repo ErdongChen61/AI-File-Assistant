@@ -16,7 +16,7 @@ class FileEventType(Enum):
 class FileEventHandler(FileSystemEventHandler):
     """File event handler that groups events by file path and processes them asynchronously."""
 
-    DEBOUNCE_SECONDS = 3
+    DEBOUNCE_SECONDS = 5
 
     def __init__(self) -> None:
         """Initialize the handler with an event queue and a worker thread."""
@@ -55,6 +55,7 @@ class FileEventHandler(FileSystemEventHandler):
         """Handle a file event."""
         text_extractor = TextExtractorFactory.get_text_extractor(path)
         if text_extractor is None:
+            print ("_handle_event NO EXTRACTOR")
             return
         
         dir_name = os.path.dirname(path)
@@ -63,9 +64,10 @@ class FileEventHandler(FileSystemEventHandler):
         if event_type == FileEventType.MODIFICATION:
             # Handle file modification
             texts = text_extractor.extract_texts(path)
+            print ("_handle_event MOD: " + path + " " + str(texts))
         elif event_type == FileEventType.DELETION:
             # Handle file deletion
-            pass
+            print ("_handle_event DEL: " + path)
 
     def _process_events(self) -> None:
         """Process all the events before debounce_end_time and handle the most recent event."""

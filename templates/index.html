@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>AI File Assistant</title>
+    </head>
+    <body>
+        <h1>Register Directory</h1>
+        <input id="registerInput" type="text" />
+        <button onClick="registerDirectory()">Register</button>
+
+        <h1>Unregister Directory</h1>
+        <input id="unregisterInput" type="text" />
+        <button onClick="unregisterDirectory()">Unregister</button>
+
+        <h1>Registered Directories</h1>
+        <ul id="dirList">
+            {% for dir in dirs %}
+            <li>{{ dir }}</li>
+            {% endfor %}
+        </ul>
+
+        <script>
+            async function registerDirectory() {
+                const dir = document.getElementById('registerInput').value;
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ dir: dir })
+                });
+                const data = await response.json();
+                updateDirList(data.registered_directories);
+            }
+
+            async function unregisterDirectory() {
+                const dir = document.getElementById('unregisterInput').value;
+                const response = await fetch('/unregister', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ dir: dir })
+                });
+                const data = await response.json();
+                updateDirList(data.registered_directories);
+            }
+
+            function updateDirList(dirs) {
+                const dirList = document.getElementById('dirList');
+                dirList.innerHTML = '';
+                for (const dir of dirs) {
+                    const li = document.createElement('li');
+                    li.textContent = dir;
+                    dirList.appendChild(li);
+                }
+            }
+        </script>
+</body>
+</html>

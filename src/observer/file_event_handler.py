@@ -4,6 +4,7 @@ import time
 
 from collections import defaultdict, deque
 from enum import Enum
+from src.extractor.text_extractor_factory import TextExtractorFactory
 from typing import Dict, Tuple, Deque
 from watchdog.observers import Observer
 from watchdog.events import FileCreatedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent, FileSystemEventHandler
@@ -52,14 +53,19 @@ class FileEventHandler(FileSystemEventHandler):
     
     def _handle_event(self, path: str, event_type: FileEventType) -> None:
         """Handle a file event."""
+        text_extractor = TextExtractorFactory.get_text_extractor(path)
+        if text_extractor is None:
+            return
+        
         dir_name = os.path.dirname(path)
         file_name = os.path.basename(path)
+        
         if event_type == FileEventType.MODIFICATION:
             # Handle file modification
-            pass
+            texts = text_extractor.extract_texts(path)
         elif event_type == FileEventType.DELETION:
             # Handle file deletion
-            pass 
+            pass
 
     def _process_events(self) -> None:
         """Process all the events before debounce_end_time and handle the most recent event."""

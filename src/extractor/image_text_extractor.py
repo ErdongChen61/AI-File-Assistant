@@ -5,7 +5,7 @@ from typing import Sequence
 
 class ImageTextExtractor(TextExtractor):
     """
-    A class to extract text from images using EasyOCR.
+    A singleton class to extract text from images using EasyOCR.
     """
 
     def __init__(self):

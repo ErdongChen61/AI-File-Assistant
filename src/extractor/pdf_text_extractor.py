@@ -5,7 +5,7 @@ from typing import Sequence
 
 class PdfTextExtractor(TextExtractor):
     """
-    Class to extract text from PDF and split it into smaller chunks.
+    A singleton class to extract text from PDF and split it into smaller chunks.
 
     Attributes:
         split_chunk_size (int): Maximum size of each split text.

@@ -18,7 +18,7 @@ Without a doubt, this is just a simple local file management system. To make thi
 
 ## Environment Setup
 ```
-conda create -n AiFileAssistant python=3.10.9
+conda create -n AiFileAssistant python=3.8.16
 conda activate AiFileAssistant
 
 # Install Python dependencies

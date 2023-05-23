@@ -128,4 +128,5 @@ dmypy.json
 **/.DS_Store
 
 # Database file
-database/
+database/sqlite/
+database/chroma/

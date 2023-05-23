@@ -3,6 +3,7 @@ import os
 from src.extractor.image_text_extractor import ImageTextExtractor
 from src.extractor.pdf_text_extractor import PdfTextExtractor
 from src.extractor.text_extractor import TextExtractor
+from src.utils.constants import IMAGE_EXT, PDF_EXT
 from typing import Optional
 
 class TextExtractorFactory:
@@ -22,9 +23,9 @@ class TextExtractorFactory:
             An instance of a text extractor or None if no suitable extractor found.
         """
         _, ext = os.path.splitext(path)
-        if ext.lower() == '.pdf':
+        if ext.lower() in PDF_EXT:
             return PdfTextExtractor()
-        elif ext.lower() in ['.jpg', '.jpeg', '.png']:
+        elif ext.lower() in IMAGE_EXT:
             return ImageTextExtractor()
         else:
             return None

@@ -4,9 +4,10 @@ from langchain.docstore.document import Document
 from langchain.vectorstores import Chroma
 from langchain.vectorstores.base import VectorStoreRetriever
 from src.model.instructor_xl_embedding_model import InstructorXlEmbeddingModel
+from src.utils.singleton import Singleton
 from typing import Dict, List, Sequence
 
-class ChromaClient:
+class ChromaClient(metaclass=Singleton):
     """ChromaClient is the main interface for interacting with the Chroma database."""
 
     def __init__(self, collection_name: str, embedding_model: InstructorXlEmbeddingModel) -> None:

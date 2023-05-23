@@ -4,6 +4,7 @@ import time
 
 from collections import defaultdict, deque
 from enum import Enum
+from src.database.vector_embedding.chroma_client_factory import ChromaClientFactory
 from src.extractor.text_extractor_factory import TextExtractorFactory
 from typing import Dict, Tuple, Deque
 from watchdog.observers import Observer
@@ -54,6 +55,7 @@ class FileEventHandler(FileSystemEventHandler):
     def _handle_event(self, path: str, event_type: FileEventType) -> None:
         """Handle a file event."""
         text_extractor = TextExtractorFactory.get_text_extractor(path)
+        chroma_client = ChromaClientFactory.get_client(path)
         if text_extractor is None:
             return
         
@@ -63,7 +65,9 @@ class FileEventHandler(FileSystemEventHandler):
             # Handle file modification
             try:
                 texts = text_extractor.extract_texts(path)
-                print ("_handle_event MOD: " + path + " " + str(texts))
+                metadatas = [{'source': path}] * len(texts)
+                chroma_client.add_texts(texts, metadatas)
+                print ("_handle_event MOD: " + path + " " + str(texts) + " " + str(metadatas))
             except FileNotFoundError as e:
                 print ("FileNotFoundError: " + str(e))
         elif event_type == FileEventType.DELETION:

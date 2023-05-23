@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from src.utils.singleton import Singleton
 from typing import Sequence
 

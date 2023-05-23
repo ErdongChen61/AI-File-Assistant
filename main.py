@@ -5,6 +5,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from src.database.client.observing_directory_client import ObservingDirectoryClient
+from src.database.vector_embedding.chroma_client import ImageChromaClient, PdfChromaClient
+from src.model.instructor_xl_embedding_model import InstructorXlEmbeddingModel
 from src.observer.directory_observer import DirectoryObserver
 from typing import Optional
 
@@ -39,15 +41,17 @@ async def unregister_directory(directory: Directory):
 
 @app.on_event("startup")
 async def startup_event():
-    # Initialize and start the DirectoryObserver.
-    app.state.directory_observer = DirectoryObserver()
+    app.state.embedding_model = InstructorXlEmbeddingModel()
     app.state.observing_directory_client = ObservingDirectoryClient(db_uri)
+    app.state.directory_observer = DirectoryObserver()
     for active_directory in app.state.observing_directory_client.get_all_active():
         registered_directories.add(active_directory.path)
+        app.state.directory_observer.register_path(active_directory.path)
+    app.state.image_chroma_client = ImageChromaClient(app.state.embedding_model)
+    app.state.pdf_chroma_client = PdfChromaClient(app.state.embedding_model)
 
 @app.on_event("shutdown")
 def shutdown_event():
-    # Stop and cleanup the DirectoryObserver here
     app.state.directory_observer.stop()
 
 if __name__ == "__main__":

@@ -55,16 +55,17 @@ class FileEventHandler(FileSystemEventHandler):
         """Handle a file event."""
         text_extractor = TextExtractorFactory.get_text_extractor(path)
         if text_extractor is None:
-            print ("_handle_event NO EXTRACTOR")
             return
         
         dir_name = os.path.dirname(path)
         file_name = os.path.basename(path)
-        
         if event_type == FileEventType.MODIFICATION:
             # Handle file modification
-            texts = text_extractor.extract_texts(path)
-            print ("_handle_event MOD: " + path + " " + str(texts))
+            try:
+                texts = text_extractor.extract_texts(path)
+                print ("_handle_event MOD: " + path + " " + str(texts))
+            except FileNotFoundError as e:
+                print ("FileNotFoundError: " + str(e))
         elif event_type == FileEventType.DELETION:
             # Handle file deletion
             print ("_handle_event DEL: " + path)
@@ -84,7 +85,7 @@ class FileEventHandler(FileSystemEventHandler):
         """Process events in a separate thread."""
         while not self.stop_event.is_set():
             self._process_events()
-            time.sleep(0.1)
+            time.sleep(2)
 
     def stop(self) -> None:
         """Stop processing events."""

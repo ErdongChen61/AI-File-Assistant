@@ -12,6 +12,18 @@
         <input id="unregisterInput" type="text" />
         <button onClick="unregisterDirectory()">Unregister</button>
 
+        <h1>Query PDFs</h1>
+        <input id="pdfQueryInput" type="text" />
+        <button onClick="queryPDFs()">Search PDFs</button>
+
+        <h1>Query Images</h1>
+        <input id="imageQueryInput" type="text" />
+        <button onClick="queryImages()">Search Images</button>
+
+        <h1>Query Results</h1>
+        <ul id="queryResults">
+        </ul>
+
         <h1>Registered Directories</h1>
         <ul id="dirList">
             {% for dir in dirs %}
@@ -44,6 +56,43 @@
                 });
                 const data = await response.json();
                 updateDirList(data.registered_directories);
+            }
+
+            async function queryPDFs() {
+                const query = document.getElementById('pdfQueryInput').value;
+                const response = await fetch('/query_pdfs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+                const data = await response.json();
+                updateQueryResults(data);
+            }
+
+            async function queryImages() {
+                const query = document.getElementById('imageQueryInput').value;
+                const response = await fetch('/query_images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+                const data = await response.json();
+                updateQueryResults(data);
+            }
+
+            function updateQueryResults(results) {
+                const queryResults = document.getElementById('queryResults');
+                queryResults.innerHTML = '';
+                for (const result of results) {
+                    const li = document.createElement('li');
+                    console.log('Result without valid metadata: ', result['metadata']);
+                    li.textContent = result['metadata']['source'];
+                    queryResults.appendChild(li);
+                }
             }
 
             function updateDirList(dirs) {

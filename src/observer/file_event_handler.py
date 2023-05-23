@@ -1,3 +1,4 @@
+import logging
 import os
 import threading
 import time
@@ -9,6 +10,8 @@ from src.extractor.text_extractor_factory import TextExtractorFactory
 from typing import Dict, Tuple, Deque
 from watchdog.observers import Observer
 from watchdog.events import FileCreatedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent, FileSystemEventHandler
+
+logger = logging.getLogger(__name__)
 
 class FileEventType(Enum):
     MODIFICATION = 1
@@ -30,16 +33,19 @@ class FileEventHandler(FileSystemEventHandler):
         """Handle a file modified event."""
         if not event.is_directory and ".DS_Store" not in event.src_path:
             self.event_queue[event.src_path].append((FileEventType.MODIFICATION, time.time()))
+            logger.info(f"Detect a modification event: {event.src_path}")
 
     def on_created(self, event: FileCreatedEvent) -> None:
         """Handle a file created event."""
         if not event.is_directory and ".DS_Store" not in event.src_path:
             self.event_queue[event.src_path].append((FileEventType.MODIFICATION, time.time()))
+            logger.info(f"Detect a creation event: {event.src_path}")
 
     def on_deleted(self, event: FileDeletedEvent) -> None:
         """Handle a file deleted event."""
         if not event.is_directory and ".DS_Store" not in event.src_path:
             self.event_queue[event.src_path].append((FileEventType.DELETION, time.time()))
+            logger.info(f"Detect a deletion event: {event.src_path}")
 
     def on_moved(self, event: FileMovedEvent) -> None:
         """Handle a file moved event."""
@@ -47,6 +53,7 @@ class FileEventHandler(FileSystemEventHandler):
             cur_time = time.time()
             self.event_queue[event.src_path].append((FileEventType.DELETION, cur_time))
             self.event_queue[event.dest_path].append((FileEventType.MODIFICATION, cur_time))
+            logger.info(f"Detect a movement event: {event.src_path} & {event.dest_path}")
 
     def _calculate_debounce_end_time(self) -> float:
         """Calculate debounce end time."""
@@ -58,21 +65,31 @@ class FileEventHandler(FileSystemEventHandler):
         chroma_client = ChromaClientFactory.get_client(path)
         if text_extractor is None:
             return
-        
-        dir_name = os.path.dirname(path)
-        file_name = os.path.basename(path)
+
         if event_type == FileEventType.MODIFICATION:
             # Handle file modification
             try:
+                logger.info(f"FileEventHandler: Write to db1 : {path} {event_type}")
+                try:
+                    chroma_client.delete(path)
+                except KeyError:
+                    logging.info(f"FileEventHandler KeyError: {path} {event_type}")
+                logger.info(f"FileEventHandler: Write to db2 : {path} {event_type}")
                 texts = text_extractor.extract_texts(path)
+                logger.info(f"FileEventHandler: Write to db3 : {path} {event_type}")
                 metadatas = [{'source': path}] * len(texts)
+                logger.info(f"FileEventHandler: Write to db4 : {path} {event_type}")
                 chroma_client.add_texts(texts, metadatas)
-                print ("_handle_event MOD: " + path + " " + str(texts) + " " + str(metadatas))
+                logger.info(f"FileEventHandler: Write to db5: {path} {event_type}")
             except FileNotFoundError as e:
-                print ("FileNotFoundError: " + str(e))
+                logger.info(f"FileNotFoundError: {path}")
         elif event_type == FileEventType.DELETION:
             # Handle file deletion
-            print ("_handle_event DEL: " + path)
+            try:
+                chroma_client.delete(path)
+            except KeyError:
+                logging.info(f"FileEventHandler KeyError: {path} {event_type}")
+            logger.info(f"FileEventHandler: Delete from db: {path} {event_type}")
 
     def _process_events(self) -> None:
         """Process all the events before debounce_end_time and handle the most recent event."""
@@ -81,6 +98,7 @@ class FileEventHandler(FileSystemEventHandler):
             event_type = None
             while events and events[0][1] < debounce_end_time:
                 event_type, _ = events.popleft()
+            logging.info(f'FileEventHandler process events: {file_path} {event_type}')
             if event_type:
                 self._handle_event(file_path, event_type)
                 

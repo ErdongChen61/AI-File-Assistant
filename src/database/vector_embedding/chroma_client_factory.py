@@ -1,7 +1,7 @@
 import os
 
 from src.database.vector_embedding.chroma_client import ChromaClient, ImageChromaClient, PdfChromaClient
-from src.model.instructor_xl_embedding_model import InstructorXlEmbeddingModel
+from src.model.embedding_model import EmbeddingModel
 from src.utils.constants import IMAGE_EXT, PDF_EXT
 from typing import Optional
 
@@ -23,8 +23,8 @@ class ChromaClientFactory:
         """
         _, ext = os.path.splitext(path)
         if ext.lower() in PDF_EXT:
-            return PdfChromaClient(InstructorXlEmbeddingModel())
+            return PdfChromaClient(EmbeddingModel())
         elif ext.lower() in IMAGE_EXT:
-            return ImageChromaClient(InstructorXlEmbeddingModel())
+            return ImageChromaClient(EmbeddingModel())
         else:
             return None

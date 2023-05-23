@@ -1,4 +1,6 @@
+import os
 import logging
+import subprocess
 import uvicorn
 
 from fastapi import FastAPI, HTTPException, Request
@@ -8,16 +10,23 @@ from langchain.docstore.document import Document
 from pydantic import BaseModel
 from src.database.client.observing_directory_client import ObservingDirectoryClient
 from src.database.vector_embedding.chroma_client import ImageChromaClient, PdfChromaClient
-from src.model.instructor_xl_embedding_model import InstructorXlEmbeddingModel
+from src.model.embedding_model import EmbeddingModel
 from src.observer.directory_observer import DirectoryObserver
 from typing import Optional, List
+
+def get_git_root(path):
+    git_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=path)
+    return git_root.decode('utf-8').strip()
+
+current_dir = os.getcwd()
+git_root = get_git_root(current_dir)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-db_uri = "sqlite:////Users/samchen/Documents/GitHub/AI-File-Assistant/database/sqlite/database.db"
+db_uri = "sqlite:///{}/database/sqlite/database.db".format(git_root)
 
 registered_directories = set()
 
@@ -80,7 +89,7 @@ async def query_images(query: Query):
 
 @app.on_event("startup")
 async def startup_event():
-    app.state.embedding_model = InstructorXlEmbeddingModel()
+    app.state.embedding_model = EmbeddingModel()
     app.state.observing_directory_client = ObservingDirectoryClient(db_uri)
     app.state.directory_observer = DirectoryObserver()
     for active_directory in app.state.observing_directory_client.get_all_active():
@@ -91,7 +100,6 @@ async def startup_event():
 
 @app.on_event("shutdown")
 def shutdown_event():
-    logger.info("Shut down server")
     app.state.directory_observer.stop()
 
 if __name__ == "__main__":

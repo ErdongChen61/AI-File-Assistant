@@ -90,7 +90,7 @@
                 for (const result of results) {
                     const li = document.createElement('li');
                     console.log('Result without valid metadata: ', result['metadata']);
-                    li.textContent = result['metadata']['source'];
+                    li.innerHTML = result['metadata']['source'] + '<br>' + result['page_content'];
                     queryResults.appendChild(li);
                 }
             }

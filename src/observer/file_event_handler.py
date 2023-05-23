@@ -61,35 +61,28 @@ class FileEventHandler(FileSystemEventHandler):
     
     def _handle_event(self, path: str, event_type: FileEventType) -> None:
         """Handle a file event."""
-        text_extractor = TextExtractorFactory.get_text_extractor(path)
         chroma_client = ChromaClientFactory.get_client(path)
-        if text_extractor is None:
-            return
-
         if event_type == FileEventType.MODIFICATION:
             # Handle file modification
+            text_extractor = TextExtractorFactory.get_text_extractor(path)
+            if text_extractor is None:
+                return
             try:
-                logger.info(f"FileEventHandler: Write to db1 : {path} {event_type}")
                 try:
                     chroma_client.delete(path)
-                except KeyError:
-                    logging.info(f"FileEventHandler KeyError: {path} {event_type}")
-                logger.info(f"FileEventHandler: Write to db2 : {path} {event_type}")
+                except KeyError as e:
+                    logger.info(f"FileEventHandler handle event KeyError: {path} {event_type}")
                 texts = text_extractor.extract_texts(path)
-                logger.info(f"FileEventHandler: Write to db3 : {path} {event_type}")
                 metadatas = [{'source': path}] * len(texts)
-                logger.info(f"FileEventHandler: Write to db4 : {path} {event_type}")
                 chroma_client.add_texts(texts, metadatas)
-                logger.info(f"FileEventHandler: Write to db5: {path} {event_type}")
             except FileNotFoundError as e:
-                logger.info(f"FileNotFoundError: {path}")
+                logger.info(f"FileEventHandler handle event FileNotFoundError: {path} {event_type}")
         elif event_type == FileEventType.DELETION:
             # Handle file deletion
             try:
                 chroma_client.delete(path)
             except KeyError:
-                logging.info(f"FileEventHandler KeyError: {path} {event_type}")
-            logger.info(f"FileEventHandler: Delete from db: {path} {event_type}")
+                logger.info(f"FileEventHandler handle event KeyError: {path} {event_type}")
 
     def _process_events(self) -> None:
         """Process all the events before debounce_end_time and handle the most recent event."""
@@ -98,7 +91,6 @@ class FileEventHandler(FileSystemEventHandler):
             event_type = None
             while events and events[0][1] < debounce_end_time:
                 event_type, _ = events.popleft()
-            logging.info(f'FileEventHandler process events: {file_path} {event_type}')
             if event_type:
                 self._handle_event(file_path, event_type)
                 

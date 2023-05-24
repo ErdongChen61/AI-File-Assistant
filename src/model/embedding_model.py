@@ -1,6 +1,3 @@
-import os
-
-from langchain import HuggingFaceHub
 from langchain.embeddings import HuggingFaceInstructEmbeddings
 from src.utils.singleton import Singleton
 

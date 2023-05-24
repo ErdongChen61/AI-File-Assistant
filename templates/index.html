@@ -13,6 +13,7 @@
         .container {
             display: flex;
             justify-content: space-around;
+            height: 75vh;
         }
         .box {
             margin: 10px;
@@ -20,6 +21,8 @@
             border: 1px solid #ddd;
             border-radius: 10px;
             width: 40%;
+            height: 100%; 
+            overflow: auto; 
         }
         .box input, .box select {
             width: 100%;
@@ -28,7 +31,7 @@
         .result {
             margin-top: 10px;
             width: 100%;
-            height: 200px;
+            height: 78%; 
             overflow-y: auto;
             border: 1px solid #ddd;
         }
@@ -117,9 +120,21 @@
             const queryResults = document.getElementById('queryResults');
             queryResults.innerHTML = '';
             for (const result of results) {
+                const sourceSpan = document.createElement('span');
+                const keywordSpan = document.createElement('span');
+                sourceSpan.textContent = 'Source: ' + result['metadata']['source'];
+                keywordSpan.textContent = 'Key words: ' + result['page_content'];
+                queryResults.appendChild(sourceSpan);
+                queryResults.appendChild(document.createElement('br'));
+
                 const p = document.createElement('p');
-                p.textContent = result['metadata']['source'] + '\n' + result['page_content'];
                 queryResults.appendChild(p);
+
+                queryResults.appendChild(keywordSpan);
+                queryResults.appendChild(document.createElement('br'));
+                // Append a horizontal line as separator
+                const hr = document.createElement('hr');
+                queryResults.appendChild(hr);
             }
         }
 

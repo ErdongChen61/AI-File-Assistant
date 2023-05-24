@@ -38,7 +38,7 @@ class Query(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_item(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "dirs": registered_directories})
+    return templates.TemplateResponse("index.html", {"request": request, "dirs": list(registered_directories)})
 
 @app.post("/register")
 async def register_directory(directory: Directory):
@@ -104,3 +104,4 @@ def shutdown_event():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+

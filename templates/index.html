@@ -1,109 +1,138 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>AI File Assistant</title>
-    </head>
-    <body>
-        <h1>Register Directory</h1>
-        <input id="registerInput" type="text" />
-        <button onClick="registerDirectory()">Register</button>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+        }
+        .title {
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+        }
+        .box {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            width: 40%;
+        }
+        .box input, .box select {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .result {
+            margin-top: 10px;
+            width: 100%;
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">
+        <h1>AI File Assistant</h1>
+    </div>
 
-        <h1>Unregister Directory</h1>
-        <input id="unregisterInput" type="text" />
-        <button onClick="unregisterDirectory()">Unregister</button>
+    <div class="container">
+        <div class="box">
+            <h2>Directories</h2>
+            <input id="registerInput" type="text" placeholder="Input the directories to observe...">
+            <button onClick="registerDirectory()">Register</button>
+            <select id="directorySelect">
+                <!-- Option elements generated from directories -->
+            </select>
+            <button onClick="unregisterDirectory()">Unregister</button>
+        </div>
 
-        <h1>Query PDFs</h1>
-        <input id="pdfQueryInput" type="text" />
-        <button onClick="queryPDFs()">Search PDFs</button>
+        <div class="box">
+            <h2>Search</h2>
+            <input id="queryInput" type="text" placeholder="Input your query...">
+            <select id="fileType">
+                <option value="pdf">PDF</option>
+                <option value="image">Image</option>
+            </select>
+            <button onClick="queryFiles()">Submit</button>
+            <div class="result" id="queryResults">
+                <!-- Query results here -->
+            </div>
+        </div>
+    </div>
 
-        <h1>Query Images</h1>
-        <input id="imageQueryInput" type="text" />
-        <button onClick="queryImages()">Search Images</button>
+    <script>
+        window.onload = function() {
+            // Get the registered directories from the server-side variable
+            const registeredDirs = {{ dirs|tojson|safe }};
 
-        <h1>Query Results</h1>
-        <ul id="queryResults">
-        </ul>
+            // Update the directory list
+            updateDirList(registeredDirs);
+        };
 
-        <h1>Registered Directories</h1>
-        <ul id="dirList">
-            {% for dir in dirs %}
-            <li>{{ dir }}</li>
-            {% endfor %}
-        </ul>
+        async function registerDirectory() {
+            const dir = document.getElementById('registerInput').value;
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ dir: dir })
+            });
+            const data = await response.json();
+            updateDirList(data.registered_directories);
+        }
 
-        <script>
-            async function registerDirectory() {
-                const dir = document.getElementById('registerInput').value;
-                const response = await fetch('/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ dir: dir })
-                });
-                const data = await response.json();
-                updateDirList(data.registered_directories);
+        async function unregisterDirectory() {
+            const dir = document.getElementById('directorySelect').value;
+            const response = await fetch('/unregister', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ dir: dir })
+            });
+            const data = await response.json();
+            updateDirList(data.registered_directories);
+        }
+
+        async function queryFiles() {
+            const query = document.getElementById('queryInput').value;
+            const fileType = document.getElementById('fileType').value;
+            const response = await fetch(`/query_${fileType}s`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: query })
+            });
+            const data = await response.json();
+            updateQueryResults(data);
+        }
+
+        function updateQueryResults(results) {
+            const queryResults = document.getElementById('queryResults');
+            queryResults.innerHTML = '';
+            for (const result of results) {
+                const p = document.createElement('p');
+                p.textContent = result['metadata']['source'] + '\n' + result['page_content'];
+                queryResults.appendChild(p);
             }
+        }
 
-            async function unregisterDirectory() {
-                const dir = document.getElementById('unregisterInput').value;
-                const response = await fetch('/unregister', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ dir: dir })
-                });
-                const data = await response.json();
-                updateDirList(data.registered_directories);
+        function updateDirList(dirs) {
+            const directorySelect = document.getElementById('directorySelect');
+            directorySelect.innerHTML = '';
+            for (const dir of dirs) {
+                const option = document.createElement('option');
+                option.textContent = dir;
+                option.value = dir;
+                directorySelect.appendChild(option);
             }
-
-            async function queryPDFs() {
-                const query = document.getElementById('pdfQueryInput').value;
-                const response = await fetch('/query_pdfs', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ query: query })
-                });
-                const data = await response.json();
-                updateQueryResults(data);
-            }
-
-            async function queryImages() {
-                const query = document.getElementById('imageQueryInput').value;
-                const response = await fetch('/query_images', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ query: query })
-                });
-                const data = await response.json();
-                updateQueryResults(data);
-            }
-
-            function updateQueryResults(results) {
-                const queryResults = document.getElementById('queryResults');
-                queryResults.innerHTML = '';
-                for (const result of results) {
-                    const li = document.createElement('li');
-                    console.log('Result without valid metadata: ', result['metadata']);
-                    li.innerHTML = result['metadata']['source'] + '<br>' + result['page_content'];
-                    queryResults.appendChild(li);
-                }
-            }
-
-            function updateDirList(dirs) {
-                const dirList = document.getElementById('dirList');
-                dirList.innerHTML = '';
-                for (const dir of dirs) {
-                    const li = document.createElement('li');
-                    li.textContent = dir;
-                    dirList.appendChild(li);
-                }
-            }
-        </script>
+        }
+    </script>
 </body>
 </html>

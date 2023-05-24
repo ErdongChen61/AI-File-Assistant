@@ -9,4 +9,3 @@ Jinja2==3.1.2
 uvicorn==0.22.0
 SQLAlchemy==2.0.15
 chromadb==0.3.23
-InstructorEmbedding==1.0.0

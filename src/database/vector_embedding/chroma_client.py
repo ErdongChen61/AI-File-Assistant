@@ -42,6 +42,7 @@ class ChromaClient:
         #profiler.print_stats()
     
     def delete(self, path: str) -> None:
+        """Delete embedding data for a given path."""
         self.db._collection.delete(where={'source': path})
         
 
@@ -50,11 +51,13 @@ class ChromaClient:
         return self.db.as_retriever()
 
 class ImageChromaClient(ChromaClient, metaclass=Singleton):
+    """ImageChromaClient is the main interface for interacting with the image embedding data."""
 
     def __init__(self, embedding_model: EmbeddingModel) -> None:
         super().__init__('image_embedding', embedding_model)
 
 class PdfChromaClient(ChromaClient, metaclass=Singleton):
+    """PdfChromaClient is the main interface for interacting with the PDF embedding data."""
 
     def __init__(self, embedding_model: EmbeddingModel) -> None:
         super().__init__('pdf_embedding', embedding_model)

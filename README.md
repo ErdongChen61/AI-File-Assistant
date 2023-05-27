@@ -34,7 +34,8 @@ conda activate AiFileAssistant
 cd [parent_directory_of_project]/AI-File-Assistant
 pip install -r requirements.txt
 
-# Start AI-File-Assistant
+# Start AI-File-Assistant.
+# It will download necessary AI models to the local while starting the script the first time.
 sudo python main.py
 
 # To interact with the assistant, input the following URL into your web browser: http://localhost:8000/

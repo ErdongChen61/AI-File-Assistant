@@ -41,6 +41,9 @@ sudo python main.py
 # To interact with the assistant, input the following URL into your web browser: http://localhost:8000/
 ```
 
+Here is the screenshot for the AI file assistant:
+![Screenshot](./ui_screenshot.jpg)
+
 ## Acknowledgements
 This project utilizes a variety of open-source models and libraries, and I am immensely grateful for their contributions. Here are some of the key components that have played a crucial role:
 
